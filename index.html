@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treznor</title>
+
+  <!-- Typography: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'bg-deep': '#020203',
+            'bg-base': '#050506',
+            'bg-elevated': '#0a0a0c',
+            surface: 'rgba(255, 255, 255, 0.05)',
+            'surface-hover': 'rgba(255, 255, 255, 0.08)',
+            foreground: '#EDEDEF',
+            'fg-muted': '#8A8F98',
+            'fg-subtle': 'rgba(255, 255, 255, 0.60)',
+            accent: '#5E6AD2',
+            'accent-bright': '#6872D9',
+            'accent-glow': 'rgba(94, 106, 210, 0.3)',
+            'border-default': 'rgba(255, 255, 255, 0.06)',
+            'border-hover': 'rgba(255, 255, 255, 0.10)',
+            'border-accent': 'rgba(94, 106, 210, 0.30)',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          boxShadow: {
+            'card-default': '0 0 0 1px rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2)',
+            'card-hover': '0 0 0 1px rgba(255,255,255,0.1), 0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(94,106,210,0.1)',
+            'cta-glow': '0 0 0 1px rgba(94,106,210,0.5), 0 4px 12px rgba(94,106,210,0.3), inset 0 1px 0 0 rgba(255,255,255,0.2)',
+            'inner-highlight': 'inset 0 1px 0 0 rgba(255,255,255,0.1)',
+          },
+          animation: {
+            'float-slow': 'float 9s ease-in-out infinite',
+            'float-slower': 'float 12s ease-in-out infinite reverse',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px) rotate(0deg)' },
+              '50%': { transform: 'translateY(-24px) rotate(1.5deg)' },
+            },
+          },
+          transitionTimingFunction: {
+            'expo-out': 'cubic-bezier(0.16, 1, 0.3, 1)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* 64px Precision Grid */
+    .bg-grid-pattern {
+      background-size: 64px 64px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    }
+
+    /* Interactive Spotlight Cursor Tracking */
+    .spotlight-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .spotlight-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+        320px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
+        rgba(94, 106, 210, 0.15),
+        transparent 80%
+      );
+      opacity: 0;
+      transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
+      pointer-events: none;
+      z-index: 1;
+    }
+    .spotlight-card:hover::before {
+      opacity: 1;
+    }
+
+    /* Ambient Hairline Highlight */
+    .top-highlight {
+      position: relative;
+    }
+    .top-highlight::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      pointer-events: none;
+    }
+  </style>
+</head>
+
+<body class="bg-bg-base text-foreground font-sans antialiased relative min-h-screen selection:bg-accent/30 selection:text-foreground">
+
+  <!-- ================= BACKGROUND LAYERS ================= -->
+  <!-- Layer 1: Ambient Base Gradient -->
+  <div class="fixed inset-0 pointer-events-none bg-[radial-gradient(ellipse_at_top,#0a0a0f_0%,#050506_55%,#020203_100%)] z-0"></div>
+
+  <!-- Layer 2: Noise Texture -->
+  <svg class="fixed inset-0 pointer-events-none w-full h-full opacity-[0.015] z-0">
+    <filter id="noiseFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" stitchTiles="stitch" />
+    </filter>
+    <rect width="100%" height="100%" filter="url(#noiseFilter)" />
+  </svg>
+
+  <!-- Layer 3: Ambient Light Blobs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-48 left-1/2 -translate-x-1/2 w-[900px] h-[550px] bg-accent/25 rounded-full blur-[140px] animate-float-slow"></div>
+    <div class="absolute top-[35%] -left-48 w-[600px] h-[600px] bg-indigo-950/30 rounded-full blur-[130px] animate-float-slower"></div>
+    <div class="absolute top-[65%] -right-48 w-[500px] h-[500px] bg-[#3b4385]/20 rounded-full blur-[120px] animate-float-slow"></div>
+  </div>
+
+  <!-- Layer 4: Geometric Grid -->
+  <div class="fixed inset-0 pointer-events-none bg-grid-pattern z-0"></div>
+
+  <!-- ================= MAIN CONTAINER ================= -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- Header -->
+    <header class="sticky top-0 z-50 border-b border-border-default backdrop-blur-xl bg-bg-base/80">
+      <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <a href="#" class="font-semibold text-base tracking-tight text-foreground hover:text-white transition-colors">
+          Treznor
+        </a>
+
+        <nav class="hidden md:flex items-center gap-8 text-sm text-fg-muted font-normal">
+          <a href="#about" class="hover:text-foreground transition-colors duration-200">Overview</a>
+          <a href="#apps" class="hover:text-foreground transition-colors duration-200">Apps</a>
+          <a href="#leadership" class="hover:text-foreground transition-colors duration-200">Leadership</a>
+          <a href="#donate" class="hover:text-foreground transition-colors duration-200">Donate</a>
+        </nav>
+
+        <div class="flex items-center gap-3">
+          <a 
+            href="https://wa.me/916397093083?text=Hi%20Treznor%2C%20I%20would%20like%20to%20support%20your%20development%21" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="bg-accent hover:bg-accent-bright text-white text-xs font-medium px-4 py-2 rounded-lg shadow-cta-glow active:scale-[0.98] transition-all duration-200 ease-expo-out"
+          >
+            Donate
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-7xl mx-auto px-6 w-full">
+
+      <!-- HERO SECTION -->
+      <section class="pt-24 pb-16 md:pt-36 md:pb-24 text-center flex flex-col items-center">
+        <h1 class="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-semibold tracking-[-0.03em] leading-tight max-w-5xl">
+          <span class="bg-gradient-to-b from-white via-white/90 to-white/60 bg-clip-text text-transparent">
+            Precision engineering for apps, web, and games.
+          </span>
+        </h1>
+
+        <p class="mt-6 text-base sm:text-lg md:text-xl text-fg-muted max-w-2xl font-normal leading-relaxed">
+          Treznor is a dedicated digital production studio building high-speed applications, responsive web systems, and interactive graphics engines.
+        </p>
+
+        <div class="mt-10 flex flex-wrap items-center justify-center gap-4">
+          <a href="#apps" class="h-10 px-5 rounded-lg bg-accent hover:bg-accent-bright text-white text-sm font-medium shadow-cta-glow transition-all duration-200 ease-expo-out active:scale-[0.98] flex items-center gap-2">
+            <span>Explore Apps</span>
+            <span class="text-xs">→</span>
+          </a>
+          <a href="#about" class="h-10 px-5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] text-foreground text-sm font-medium border border-border-default hover:border-border-hover shadow-inner-highlight transition-all duration-200 ease-expo-out active:scale-[0.98] flex items-center">
+            Studio Profile
+          </a>
+        </div>
+      </section>
+
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
+
+      <!-- ABOUT TREZNOR: DETAILED ARCHITECTURE & TECH SPECS (~500 WORDS) -->
+      <section id="about" class="py-20">
+        <div class="max-w-3xl mb-12">
+          <span class="font-mono text-xs uppercase tracking-widest text-accent">Studio Architecture & Engineering</span>
+          <h2 class="text-2xl sm:text-4xl font-semibold tracking-tight text-foreground mt-2">
+            Pioneering High-Performance Digital Experiences
+          </h2>
+          <p class="text-fg-muted text-sm sm:text-base mt-3 leading-relaxed">
+            At Treznor, we engineer software at the intersection of computational speed, immersive aesthetics, and ergonomic interface design. We develop end-to-end digital solutions—ranging from complex web platforms and reactive native applications to interactive game graphics and creative canvases.
+          </p>
+        </div>
+
+        <!-- Capability & Technology Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+          <!-- Card 1: Web Ecosystems -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">01 // Platforms</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">Modern Web Architecture</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                We craft web systems built for zero unnecessary re-renders, instantaneous load times, and fluid page transitions. Using strict single-bundle paradigms, modular component architectures, and responsive layouts, our web platforms deliver native desktop responsiveness straight inside the browser.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              HTML5 • Modern ES • Single-Bundle Scalability
+            </div>
+          </div>
+
+          <!-- Card 2: App Development -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">02 // Native & Mobile</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">High-Fidelity Apps</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                Our application engineering delivers seamless cross-device performance. From reactive local storage architectures to frictionless gesture-driven controls, every application is crafted to eliminate interface lag, conserve device memory, and remain robust across screen resolutions.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              Progressive Web Apps • Fluid Touch UI
+            </div>
+          </div>
+
+          <!-- Card 3: Game Tech & Graphics -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">03 // Interactive</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">Games & Graphics Engines</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                Beyond static software, Treznor develops graphical sandboxes and gaming prototypes. We tap into hardware acceleration, WebGL canvas pipelines, and mathematical physics to build engaging 2D/3D interactions with buttery-smooth 60fps frame budgets.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              WebGL • 2D Canvas • Procedural Renderers
+            </div>
+          </div>
+
+          <!-- Card 4: Deep UI/UX System -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">04 // Aesthetic Depth</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">High-Integrated UI</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                We believe interfaces should have atmospheric physical presence. Our bespoke UI design combines multi-layered ambient lighting, dynamic cursor-tracking spotlights, fine hair-line borders, and custom non-static typographic gradients that mimic high-end hardware terminals.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              Layered Shading • Custom Spotlights
+            </div>
+          </div>
+
+          <!-- Card 5: Performance Engineering -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">05 // Speed Core</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">Performance Optimization</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                Software must respond immediately. We obsess over micro-interactions calibrated to 200-300ms expo-out curves, rapid DOM mutation algorithms, asset-minification, and aggressive client-side caching to ensure instantaneous usability even on resource-constrained devices.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              Expo-Out Motion • Hardware Paint Cycles
+            </div>
+          </div>
+
+          <!-- Card 6: Creative Vision -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-7 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-accent uppercase tracking-wider">06 // Evolution</div>
+              <h3 class="text-lg font-semibold text-foreground mt-2">Developer Tools & Utilities</h3>
+              <p class="text-xs text-fg-muted leading-relaxed mt-2.5">
+                Every release from the Treznor studio is designed to empower human expression. Whether providing intuitive drawing canvases or developing productivity modules, we bridge complex technological capabilities with frictionless human-computer workflows.
+              </p>
+            </div>
+            <div class="mt-6 pt-4 border-t border-white/[0.05] font-mono text-[11px] text-fg-subtle">
+              Modular Engines • User-First Toolsets
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
+
+      <!-- APPS SECTION (CHITRO) -->
+      <section id="apps" class="py-20">
+        <div class="mb-10">
+          <span class="font-mono text-xs uppercase tracking-widest text-accent">Ecosystem</span>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+            Featured Applications
+          </h2>
+          <p class="text-fg-muted text-sm mt-1">Direct web experiences built and maintained under Treznor.</p>
+        </div>
+
+        <div>
+          <!-- CHITRO Interactive Card -->
+          <a 
+            href="https://treznor28.github.io/CHITRO/" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="spotlight-card top-highlight block rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-6 sm:p-8 md:p-10 group cursor-pointer"
+          >
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+              <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+                <!-- App Icon Image with Fallbacks -->
+                <img 
+                  src="chitro-icon.png" 
+                  alt="Chitro App Icon" 
+                  class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover shadow-2xl border border-white/10 shrink-0 group-hover:scale-105 transition-transform duration-300 ease-expo-out"
+                  onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/treznor28/CHITRO/main/icon.png';"
+                />
+                
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="text-2xl font-semibold tracking-tight text-foreground group-hover:text-white transition-colors">
+                      CHITRO
+                    </h3>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-accent/20 text-accent border border-accent/30">
+                      Live App
+                    </span>
+                  </div>
+                  <p class="text-fg-muted text-sm leading-relaxed mt-2 max-w-xl">
+                    A fluid visual canvas and creative web suite engineered for responsive graphical workflows. Click to open and run the application instantly in your browser.
+                  </p>
+                  <span class="inline-block mt-3 text-xs font-mono text-accent hover:underline">
+                    treznor28.github.io/CHITRO ↗
+                  </span>
+                </div>
+              </div>
+
+              <!-- Action Link -->
+              <div class="flex items-center gap-2 text-xs font-mono text-fg-muted group-hover:text-foreground transition-colors shrink-0">
+                <span>Launch App</span>
+                <span class="text-base group-hover:translate-x-0.5 transition-transform">→</span>
+              </div>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
+
+      <!-- LEADERSHIP SECTION -->
+      <section id="leadership" class="py-20">
+        <div class="mb-12">
+          <span class="font-mono text-xs uppercase tracking-widest text-accent">People</span>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+            Leadership
+          </h2>
+          <p class="text-fg-muted text-sm mt-1 max-w-2xl">
+            Treznor is led by three dedicated technologists focused on building refined software, resilient web architecture, and clean user interfaces.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <!-- Leader 1: AdityaJeet Singh -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-8 flex flex-col justify-between">
+            <div class="relative z-10">
+              <span class="font-mono text-xs uppercase tracking-widest text-accent">Leader</span>
+              <h3 class="text-xl font-semibold tracking-tight text-foreground mt-2">AdityaJeet Singh</h3>
+              <p class="text-fg-muted text-sm leading-relaxed mt-3">
+                Overseeing system design, technical direction, and product execution across all Treznor projects and platforms.
+              </p>
+            </div>
+            <div class="pt-6 border-t border-white/[0.06] mt-8 flex items-center justify-between text-xs font-mono text-fg-subtle">
+              <span>Treznor</span>
+              <span class="text-accent">Leadership</span>
+            </div>
+          </div>
+
+          <!-- Leader 2: Mausum -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-8 flex flex-col justify-between">
+            <div class="relative z-10">
+              <span class="font-mono text-xs uppercase tracking-widest text-accent">Leader</span>
+              <h3 class="text-xl font-semibold tracking-tight text-foreground mt-2">Mausum</h3>
+              <p class="text-fg-muted text-sm leading-relaxed mt-3">
+                Driving engineering execution, responsiveness, and performance stability throughout applications and toolkits.
+              </p>
+            </div>
+            <div class="pt-6 border-t border-white/[0.06] mt-8 flex items-center justify-between text-xs font-mono text-fg-subtle">
+              <span>Treznor</span>
+              <span class="text-accent">Leadership</span>
+            </div>
+          </div>
+
+          <!-- Leader 3: Arhaan -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-8 flex flex-col justify-between">
+            <div class="relative z-10">
+              <span class="font-mono text-xs uppercase tracking-widest text-accent">Leader</span>
+              <h3 class="text-xl font-semibold tracking-tight text-foreground mt-2">Arhaan</h3>
+              <p class="text-fg-muted text-sm leading-relaxed mt-3">
+                Focusing on visual clarity, UX fidelity, and interactive details that define the aesthetic quality of every release.
+              </p>
+            </div>
+            <div class="pt-6 border-t border-white/[0.06] mt-8 flex items-center justify-between text-xs font-mono text-fg-subtle">
+              <span>Treznor</span>
+              <span class="text-accent">Leadership</span>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <div class="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-4"></div>
+
+      <!-- DONATE SECTION (WHATSAPP INTEGRATED: 6397093083) -->
+      <section id="donate" class="py-20">
+        <div class="mb-12">
+          <span class="font-mono text-xs uppercase tracking-widest text-accent">Contribute</span>
+          <h2 class="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+            Support Treznor
+          </h2>
+          <p class="text-fg-muted text-sm mt-1 max-w-2xl">
+            Choose a tier to connect directly on WhatsApp (+91 6397093083) and support independent development, servers, and new web releases.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Tier 1: $5 -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-8 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-fg-subtle uppercase tracking-widest">Supporter Tier</div>
+              <div class="text-3xl font-semibold tracking-tight text-foreground mt-2">$5 <span class="text-sm font-normal text-fg-muted">one-time</span></div>
+              <p class="text-xs text-fg-muted mt-3 leading-relaxed">
+                Directly fuel late-night coding sessions and maintenance for our open tools.
+              </p>
+            </div>
+            <a 
+              href="https://wa.me/916397093083?text=Hi%20Treznor%2C%20I%20want%20to%20donate%20%245%20to%20support%20your%20development%20work." 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="mt-8 w-full py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-xs font-medium text-foreground text-center transition-all duration-200 ease-expo-out active:scale-[0.98] block"
+            >
+              Donate $5 via WhatsApp
+            </a>
+          </div>
+
+          <!-- Tier 2: $25 -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.12] to-white/[0.03] border border-border-accent shadow-card-hover p-8 flex flex-col justify-between relative">
+            <div>
+              <div class="flex items-center justify-between">
+                <span class="font-mono text-xs text-accent uppercase tracking-widest">Backer Tier</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider bg-accent/20 text-accent border border-accent/40">Most Popular</span>
+              </div>
+              <div class="text-3xl font-semibold tracking-tight text-foreground mt-2">$25 <span class="text-sm font-normal text-fg-muted">one-time</span></div>
+              <p class="text-xs text-fg-muted mt-3 leading-relaxed">
+                Helps fund server infrastructure, domain upkeep, and expansion of our application catalog like CHITRO.
+              </p>
+            </div>
+            <a 
+              href="https://wa.me/916397093083?text=Hi%20Treznor%2C%20I%20want%20to%20donate%20%2425%20to%20sponsor%20your%20projects." 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="mt-8 w-full py-2.5 rounded-lg bg-accent hover:bg-accent-bright text-white text-xs font-medium shadow-cta-glow text-center transition-all duration-200 ease-expo-out active:scale-[0.98] block"
+            >
+              Donate $25 via WhatsApp
+            </a>
+          </div>
+
+          <!-- Tier 3: $50 (New Plan) -->
+          <div class="spotlight-card top-highlight rounded-2xl bg-gradient-to-b from-white/[0.08] to-white/[0.02] border border-border-default hover:border-border-hover shadow-card-default hover:shadow-card-hover transition-all duration-300 ease-expo-out p-8 flex flex-col justify-between">
+            <div>
+              <div class="font-mono text-xs text-fg-subtle uppercase tracking-widest">Leader Tier</div>
+              <div class="text-3xl font-semibold tracking-tight text-foreground mt-2">$50 <span class="text-sm font-normal text-fg-muted">one-time</span></div>
+              <p class="text-xs text-fg-muted mt-3 leading-relaxed">
+                Direct sponsorship to accelerate complex web platforms, native modules, and game engines.
+              </p>
+            </div>
+            <a 
+              href="https://wa.me/916397093083?text=Hi%20Treznor%2C%20I%20want%20to%20support%20Treznor%20with%20a%20%2450%20sponsorship." 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              class="mt-8 w-full py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.09] border border-white/10 text-xs font-medium text-foreground text-center transition-all duration-200 ease-expo-out active:scale-[0.98] block"
+            >
+              Donate $50 via WhatsApp
+            </a>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-border-default bg-bg-deep/90 py-10 mt-16">
+      <div class="max-w-7xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-fg-muted">
+        <p>© Treznor. All rights reserved.</p>
+        <div class="flex items-center gap-6">
+          <a href="https://treznor28.github.io/CHITRO/" target="_blank" rel="noopener noreferrer" class="hover:text-foreground transition-colors">
+            CHITRO App ↗
+          </a>
+          <a 
+            href="https://wa.me/916397093083?text=Hi%20Treznor" 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            class="hover:text-foreground transition-colors"
+          >
+            WhatsApp Support (+91 6397093083)
+          </a>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Cursor Tracking for Spotlight Elements -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const cards = document.querySelectorAll('.spotlight-card');
+
+      cards.forEach((card) => {
+        card.addEventListener('mousemove', (e) => {
+          const rect = card.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          card.style.setProperty('--mouse-x', `${x}px`);
+          card.style.setProperty('--mouse-y', `${y}px`);
+        });
+      });
+    });
+  </script>
+</body>
+</html>
